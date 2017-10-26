@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+<meta charset="UTF-8">
+<title>智能投研终端系统</title>
+<!--css引入-->
+<link href="style/common.css" rel="stylesheet" type="text/css">
+<link href="style/style.css" rel="stylesheet" type="text/css">
+<!--js引入-->
+<script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="js/tab.js"></script>
+<script type="text/javascript" src="js/digcoo.js"></script>
+</head>
+<body>
+<!--  <script src="/demos/googlegg.js"></script>   -->
+
+<div id="img_show" style="width:1200px;margin: 0 auto; text-align:center; ">
+	<a href="#" onclick="javascript:open_sina_stock_page();">
+		<img id="daily" src="http://image.sinajs.cn/newchart/daily/n/sh000001.gif">  </a>
+	<input id="show_stock_id" type="hidden" value="sh000001"  />
+	<img id="min" src="http://image.sinajs.cn/newchart/weekly/n/sh000001.gif">
+</div>
+
+<div style="width:1000px;margin: 0 auto;">
+<h1 class="titleH1 underNone clearfix">
+	<span class="left underNone underLine">推荐产品 </span>
+	<input type="checkbox" class="clickbtn save"  value="观察模式" onclick="javascript:change_model(this);"  />
+	<input type="button" class="clickbtn save"  value="老版本" onclick="javascript:window.open('index_his.html')" />
+	<input type="button" class="clickbtn save"  value="买卖池" onclick="javascript:window.open('pool.html');"  />
+	<input type="button" class="clickbtn save"  value="孵化池" onclick="javascript:window.open('incubator.html');"  />
+	<input type="button" class="clickbtn save"  value="测试最新数据" onclick="javascript:latest_stock_days();"  />
+	<span onclick="javascript:change_chart_model('time');" class="clickbtn save" ><input type="radio" name = "chart_model" value="分时线" />分时&nbsp;	</span>
+	<span onclick="javascript:change_chart_model('daily');" class="clickbtn save" ><input type="radio" name = "chart_model"  value="日K线" />日K&nbsp;	</span>
+	<span onclick="javascript:change_chart_model('weekly');" class="clickbtn save" ><input type="radio" name = "chart_model"  value="周K线" />周K&nbsp;	</span>
+	<span onclick="javascript:change_chart_model('monthly');" class="clickbtn save" ><input type="radio" name = "chart_model"  value="月K线" />月K&nbsp;	</span>
+</h1>
+
+<div class="jyTable">
+	<div class="clearfix">
+		<ul id="tab_id" class="title title1 left">
+
+		</ul>
+		<ul  id="summary" class="titleexp right" style="padding-top: 8px;">
+			<li> <input type="text" style="width:62px;" id="search" /> </li>
+		</ul>
+	</div>
+	<div class='zong'>
+		<div id="model_list" class="list list1">
+		
+		</div>
+	</div>
+</div>
+</div>
+
+
+<script type="text/javascript">
+
+
+	String.prototype.startWith=function(s){
+		var reg=new RegExp("^"+s);
+		return reg.test(this);
+	}
+	var hit_list_url = remote_host + "/digcoo/recommend";
+	var hit_add_url = remote_host + "/digcoo/hit/add";
+	var hit_resistance_url = remote_host + "/digcoo/hit/resistance";
+	var latest_stock_days_url = remote_host + "/digcoo/stock/latestdays/sh601939";
+	var show_model_array = ["Upper", "MinV", "LBreak", "MVol", "Burst", "ReMark", "DWM", "CWM", "CLWM", "BASE", 'Time30', 'LTime30', 'TimeRise', 'Cover'];
+	var show_model_array_sort = {"Burst":"desc", "Upper":"desc", "MinV":"desc", "Base":"desc", "LastBreak":"desc", "CrossDMA":"desc", "MVol":"desc", "NDWMA":"desc"};
+	// "Sunrise", "GreenT", "Vol", "Close", "Star", "Sunrise", "RT", "TT",  "Open", 
+	
+	var flag_buy = true;
+	var chart_model = 'time';
+	
+//	var daily_img = document.getElementById("img_show").children[0];
+//	var min_img = document.getElementById("img_show").children[1];
+	var daily_img = document.getElementById("daily");
+	var min_img = document.getElementById("min");
+	
+	init_tab_index();
+	fresh_data();
+	
+	window.setInterval("fresh_data()",180 * 1000); 
+
+	function fresh_data(){
+		$.ajax({
+            type: "GET",
+            url: hit_list_url,
+            success: function(data){
+				var stocks = JSON.parse(data);
+				init_tab_data(stocks);
+            }
+        });
+	}
+		
+	function init_tab_data(stocks){
+	
+		$("#model_list").empty();
+		var com_stocks = compose_stocks(stocks);
+		
+		//顶部tab
+		var total_with =  (1000 * show_model_array.length) + "px";
+		$("#model_list").css('width',total_with);
+		
+		rec_total = 0;
+		//填充tab数据
+		for(var i = 0; i < show_model_array.length; i++){
+			var tabCon = create_tabCon(com_stocks[show_model_array[i]]);
+			$("#model_list").append(tabCon);
+			rec_total += com_stocks[show_model_array[i]].length;
+		}
+		
+		//填充总数等数据
+//		if(typeof($("#total_rec")) != 'undefined' ){
+		if($("#total_rec") != 'undefined' ){
+			$("#total_rec").remove();
+		}		
+//		$("#summary").append(create_summary_li(rec_total));			//累计总数
+		$("#summary").append(create_summary_li(stocks.length));		//实际总数
+	}
+	
+	function compose_stocks(stocks){
+		var com_stock_array = new Array(show_model_array.length);
+		for(var i = 0; i < show_model_array.length;i ++){
+			com_stock_array[show_model_array[i]] = new Array();
+		}
+				
+		stocks.forEach(function(val,index,arr){
+			for (var i = 0; i < show_model_array.length; i ++){
+				if(arr[index].model.startWith(show_model_array[i]) == true || arr[index].model.indexOf("," + show_model_array[i]) > -1){
+					com_stock_array[show_model_array[i]].push(arr[index]);
+				}
+			}
+		})
+		
+		
+		//按照weight排序
+		/*
+		for(var i = 0; i < show_model_array.length;i ++){
+			com_stock_array[show_model_array[i]].sort(function(a,b){
+				a_temp = a.model.split(",");
+				a_weight = 0;
+				for(var t = 0; t<a_temp.length; t ++){
+					if(a_temp[t].indexOf(show_model_array[i]) > -1){
+						a_weight = (a_temp[t].split("-"))[1];
+					}
+				}
+				
+				b_temp = b.model.split(",");
+				b_weight = 0;
+				for(var t = 0; t<b_temp.length; t ++){
+					if(b_temp[t].indexOf(show_model_array[i]) > -1){
+						b_weight = (b_temp[t].split("-"))[1];
+					}
+				}				
+				
+				return b_weight-a_weight;
+				}
+			);
+		}*/
+		
+		//按照涨幅排序
+		for(var i = 0; i < show_model_array.length;i ++){
+			com_stock_array[show_model_array[i]].sort(function(a,b){
+					a_change_shadow = (a.close-a.last_close)/a.last_close;
+					b_change_shadow = (b.close-b.last_close)/b.last_close;
+					if (show_model_array_sort[show_model_array[i]] == "asc"){
+						return a_change_shadow-b_change_shadow;
+					}else{
+						return b_change_shadow-a_change_shadow;
+					}
+				});
+		}
+				
+		return com_stock_array;
+	}
+
+
+	function init_tab_index(){
+		var table_index_ul = $("#tab_id");
+		for (var i = 0; i < show_model_array.length; i++){
+			var li = document.createElement("li");
+			li.innerHTML=show_model_array[i];
+			if(i == 0){
+				li.className="cur";
+			}
+			table_index_ul.append(li);
+		}
+		return table_index_ul;
+	}
+	
+	function create_tabCon(model_stocks){
+		var tab_div = document.createElement("div"); 
+		tab_div.className = "tabCon";
+		
+		var tabth = create_tabth();
+		var tabrow = create_tabrow(model_stocks);
+		tab_div.append(tabth);
+		tab_div.append(tabrow);
+		
+		return tab_div;
+	}
+
+	function create_tabth(){
+		
+		//ul
+		var tab_ul = document.createElement("ul"); 
+		
+		//li
+		var tab_li = document.createElement("li");
+		tab_li.className="tabth clearfix";
+		
+		//span-序号
+		var tab_span_seq = document.createElement("span");
+		tab_span_seq.style.width="8%";
+		tab_span_seq.innerHTML="序号";
+		tab_li.append(tab_span_seq);
+		
+		//span-代码
+		var tab_span_symbol = document.createElement("span");
+		tab_span_symbol.style.width="6%";
+		tab_span_symbol.innerHTML="代码";
+		tab_li.append(tab_span_symbol);
+		//span-开盘价
+		var tab_span_op = document.createElement("span");
+		tab_span_op.style.width="6%";
+		tab_span_op.innerHTML="开盘价";
+		tab_li.append(tab_span_op);
+		//span-收盘价
+		var tab_span_operator = document.createElement("span");
+		tab_span_operator.style.width="6%";
+		tab_span_operator.innerHTML="收盘价";
+		tab_li.append(tab_span_operator);
+		//span-下影线
+		var tab_span_low = document.createElement("span");
+		tab_span_low.style.width="6%";
+		tab_span_low.innerHTML="下影线";
+		tab_li.append(tab_span_low);
+		//span-上影线
+		var tab_span_close = document.createElement("span");
+		tab_span_close.style.width="6%";
+		tab_span_close.innerHTML="上影线";
+		tab_li.append(tab_span_close);
+		//span-实体柱
+		var tab_span_high = document.createElement("span");
+		tab_span_high.style.width="6%";
+		tab_span_high.innerHTML="实体柱";
+		tab_li.append(tab_span_high);
+		//span-涨幅
+		var tab_span_change = document.createElement("span");
+		tab_span_change.style.width="6%";
+		tab_span_change.innerHTML="涨幅";
+		tab_li.append(tab_span_change);
+		//span-模式
+		var tab_span_model = document.createElement("span");
+		tab_span_model.style.width="28%";
+		tab_span_model.innerHTML="模式";
+		tab_li.append(tab_span_model);
+		//span-操作
+		var tab_span_operate = document.createElement("span");
+		tab_span_operate.style.width="22%";
+		tab_span_operate.innerHTML="操作";
+		tab_li.append(tab_span_operate);
+		
+		tab_ul.append(tab_li);
+		
+		return tab_ul;
+	}
+	
+	
+	function create_tabrow(model_stocks){
+		var row_div = document.createElement("div");
+		row_div.className="datarow";
+		
+		//ul
+		var row_ul = document.createElement("ul");
+		row_ul.className="tabUl";
+		
+		for(var i = 0; i < model_stocks.length; i++){
+			
+			if (flag_buy) {
+				if ((model_stocks[i].close - model_stocks[i].last_close)/model_stocks[i].last_close > 0.03 
+					|| (model_stocks[i].close - model_stocks[i].last_close)/model_stocks[i].last_close < -0.02) {
+					continue;
+				}
+			}
+			
+			//li
+			var row_li = document.createElement("li");
+			row_li.className="tabtr";
+			row_li.title = model_stocks[i].model;
+			
+			//span-代码
+			var tab_span_seq = document.createElement("span");
+			tab_span_seq.style.width="8%";
+			tab_span_seq.innerText = i + 1;
+			row_li.append(tab_span_seq);
+			//span-代码
+			var tab_span_symbol = document.createElement("span");
+			tab_span_symbol.style.width="6%";
+			tab_span_symbol.style.color="red";
+			var sina_url = "http://finance.sina.com.cn/realstock/company/" + model_stocks[i].symbol  + "/nc.shtml"; 
+			tab_span_symbol.innerHTML = "<a href=\"#\" onclick=\"javascript:window.open('"   + sina_url + "')\" >"  + model_stocks[i].symbol + "</a>";
+			row_li.append(tab_span_symbol);
+			//span-开盘价
+			var tab_span_op = document.createElement("span");
+			tab_span_op.style.width="6%";
+			tab_span_op.style.color="green";
+			tab_span_op.innerText = model_stocks[i].op;
+			row_li.append(tab_span_op);			
+			//span-收盘价
+			var tab_span_close = document.createElement("span");
+			tab_span_close.style.width="6%";
+			tab_span_close.style.color="red";
+			tab_span_close.innerText = model_stocks[i].close;
+			row_li.append(tab_span_close);
+			//span-下影线
+			var tab_span_low = document.createElement("span");
+			tab_span_low.style.width="6%";
+			tab_span_low.style.color="green";
+			tab_span_low.innerText = ((model_stocks[i].low-model_stocks[i].op)/model_stocks[i].low * 100).toFixed(3) + "%";
+			row_li.append(tab_span_low);
+			//span-上影线
+			var tab_span_upper = document.createElement("span");
+			tab_span_upper.style.width="6%";
+			tab_span_upper.style.color="red";
+			tab_span_upper.innerText = ((model_stocks[i].high-model_stocks[i].close)/model_stocks[i].close * 100).toFixed(3) + "%";
+			row_li.append(tab_span_upper);
+			//span-实体柱
+			var tab_span_column = document.createElement("span");
+			tab_span_column.style.width="6%";
+			tab_span_column.style.color="green";
+			tab_span_column.innerText = ((model_stocks[i].close-model_stocks[i].op)/model_stocks[i].op * 100).toFixed(3) + "%";
+			row_li.append(tab_span_column);
+			//span-涨幅
+			var tab_span_change = document.createElement("span");
+			tab_span_change.style.width="6%";
+			var change_shadow =((model_stocks[i].close-model_stocks[i].last_close)/model_stocks[i].last_close * 100).toFixed(2)
+			if(change_shadow > 0){
+				tab_span_change.style.color="red";
+			}else{
+				tab_span_change.style.color="green";
+			}
+			tab_span_change.innerText = change_shadow + "%";
+			row_li.append(tab_span_change);
+			//span-模式
+			var tab_span_model = document.createElement("span");
+			tab_span_model.style.width="28%";
+			tab_span_model.style.color="green";
+			tab_span_model.innerText = model_stocks[i].model.substring(0, Math.min(35, model_stocks[i].model.length));
+			row_li.append(tab_span_model);
+			//span-操作
+			var tab_span_operate = document.createElement("a");
+			tab_span_operate.style.width="22%";
+			tab_span_operate.style.color="#F7001E";
+			var operate_buy = "<em class=\"clickbtn buy\" onclick=\"javascript:stock_add('" + model_stocks[i].symbol + "', '" + model_stocks[i].model + "', 'watch');\">+观察</em>";
+			var operate_add = "<em class=\"clickbtn add\" onclick=\"javascript:stock_add('" + model_stocks[i].symbol + "', '" + model_stocks[i].model + "', 'hold');\">+买入</em>";
+//			var operate_view = "<em class=\"clickbtn view\" onclick=\"javascript:stock_view();\">查看</em>";
+			var operate_view_resistance = "<em class=\"clickbtn view\" onclick=\"javascript:stock_view_resistance('" + model_stocks[i].symbol + "');\">+阻力位</em>";
+			tab_span_operate.innerHTML = operate_buy + "&nbsp;" + operate_add + "&nbsp;" + operate_view_resistance;
+			row_li.append(tab_span_operate);
+			
+			row_ul.append(row_li);
+			
+			row_li.style.background="white";
+			row_li.onclick=function(){
+				update_img_show(this.children[1].innerText);
+				
+				//var show_imgs = create_img_show(this.children[0].innerText);
+				//$("#img_show").empty();
+				//$("#img_show").append(show_imgs[0]);
+				//$("#img_show").append(show_imgs[1]);
+				if(this.style.background == "white"){
+					this.style.background = "#95dbea";
+				}else{
+					this.style.background = "white";
+				}
+			}
+		}
+		
+		row_div.append(row_ul);
+		
+		return row_div;
+	}
+	
+	function create_summary_li(sum){
+		
+		var li_total = document.createElement("li");
+		li_total.id = "total_rec";
+		li_total.innerText = "推荐总数：" + sum;
+				
+		return [li_total];
+	}
+	
+	function update_img_show(symbol){
+//		daily_img.src="http://image.sinajs.cn/newchart/daily/n/" + symbol + ".gif";
+//		min_img.src="http://image.sinajs.cn/newchart/weekly/n/" + symbol + ".gif";
+		$("#show_stock_id").val(symbol);
+		change_chart_model(chart_model);
+	}
+	
+	$('#search').bind('keypress', function (event) {
+		if (event.keyCode == "13") {
+			update_img_show(this.value);
+		}
+	});
+	
+	function stock_add(symbol, model, status){
+		$.ajax({
+            type: "POST",
+            url: hit_add_url,
+			data: {"symbol":symbol, "model":model, "status":status},
+            success: function(data){
+				var ret = JSON.parse(data);
+				if(ret.code=="200"){
+					alert("添加成功");
+				}else{
+					alert(data);
+				}
+            }
+        });
+	}
+		
+	function stock_view_resistance(symbol){
+		$.ajax({
+            type: "GET",
+            url: hit_resistance_url+"/"+symbol,
+            success: function(data){
+				var ret = JSON.parse(data);
+				alert(ret.resistance);
+            }
+        });
+	}
+
+	function change_model(obj){
+		if(flag_buy){
+			flag_buy = false;
+			obj.value = "观察模式";
+			fresh_data();
+		}else{
+			flag_buy = true;
+			obj.value = "购买模式";
+			fresh_data();
+		}
+	}
+			
+	function latest_stock_days(){
+		$.ajax({
+            type: "GET",
+            url: latest_stock_days_url,
+            success: function(data){
+				var ret = JSON.parse(data);
+				alert(ret.latest_days[0].id);
+            }
+        });
+	}
+	
+	function open_sina_stock_page(){
+		var sina_stock_url = "http://finance.sina.com.cn/realstock/company/" + $("#show_stock_id").val() + "/nc.shtml"; 
+		window.open(sina_stock_url);
+	}
+	
+	function change_chart_model(type) {
+		chart_model = type;
+		var symbol = $("#show_stock_id").val();
+		if (type == "time"){
+			daily_img.src="http://image.sinajs.cn/newchart/min/n/" + symbol + ".gif";
+			min_img.src="http://image.sinajs.cn/newchart/daily/n/" + symbol + ".gif";
+		}else if(type == "daily") {
+			daily_img.src="http://image.sinajs.cn/newchart/daily/n/" + symbol + ".gif";
+			min_img.src="http://image.sinajs.cn/newchart/weekly/n/" + symbol + ".gif";
+		}else if(type == "weekly") {
+			daily_img.src="http://image.sinajs.cn/newchart/weekly/n/" + symbol + ".gif";
+			min_img.src="http://image.sinajs.cn/newchart/monthly/n/" + symbol + ".gif";
+		}else if(type == "monthly") {
+			daily_img.src="http://image.sinajs.cn/newchart/monthly/n/" + symbol + ".gif";
+			min_img.src="http://image.sinajs.cn/newchart/min/n/" + symbol + ".gif";
+		}
+	}
+	
+</script>
+
+</body>
+</html>

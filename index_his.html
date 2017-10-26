@@ -1,0 +1,104 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<title>股票推荐系统-实时推荐</title>
+
+	<script src="public/static/js/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="js/digcoo.js"></script>
+ 
+ <style>
+	.tdclass{
+		border:1px solid #F00
+ </style>
+</head>
+<body>
+	<img id="daily" src="http://image.sinajs.cn/newchart/daily/n/sh601006.gif" />
+	<img id="min" src="http://image.sinajs.cn/newchart/min/n/sh601006.gif" />
+	
+	<table id="show_symbols"> </table>
+
+</body>
+
+<script type="text/javascript">
+	var day = Math.round(new Date().getTime()/1000);
+	var url = remote_host + "/digcoo/recommend";
+	
+	var daylyEle=document.getElementById("daily")
+	var minEle=document.getElementById("min");
+
+	function switch_stock(symbol){
+		daylyEle.src="http://image.sinajs.cn/newchart/daily/n/" + symbol + ".gif"
+		minEle.src="http://image.sinajs.cn/newchart/min/n/" + symbol + ".gif"
+	}
+	
+	var text_data = '[{"symbol":"sh601101", "price":"10.00", "model":"Star1"}, {"symbol":"sh600111", "price":"10.00", "model":"T1"}, {"symbol":"sh600848", "price":"10.00", "model":"Burst"}]';
+	
+	var oldSymbols = [];
+	
+	function contains(array, obj){
+		for (var i = 0; i < array.length; i++){
+			if(array[i] == obj){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	function init_table(stocks){
+		if(stocks != null && stocks.length > 0){
+			var newSymbols = [];
+			ncols_per_row = 5;
+			var table=document.getElementById("show_symbols");
+			table.innerHTML="";
+			rows = parseInt((stocks.length - 1) / ncols_per_row) + 1;
+			for(var i=0; i<rows; i++){
+				var tr = document.createElement("tr");
+				for(var j=0; j<ncols_per_row; j++){
+					var td = document.createElement("td");
+					td.className="tdclass";
+					if((i*ncols_per_row + j) < stocks.length){
+						var symbol = stocks[i*ncols_per_row + j].symbol;
+						var model = stocks[i*ncols_per_row + j].model;
+						var price = stocks[i*ncols_per_row + j].close;
+						td.innerHTML = symbol + "-" + model + "-" + price;
+						
+						if(!contains(oldSymbols, symbol)){
+							td.style.background="red";
+						}
+						newSymbols.push(symbol);
+						
+						td.onclick = function () {
+							switch_stock(this.innerText.split("-")[0]);
+						}
+					}
+					tr.appendChild(td);
+				}
+				table.appendChild(tr);
+			}
+			oldSymbols = newSymbols;
+		}
+	}
+		
+	fresh_data()
+	
+	function fresh_data(){
+		$.ajax({
+            type: "GET",
+            url: url,
+            //data: {username:$("#username").val(), content:$("#content").val()},
+            //dataType: "json",
+            success: function(data){
+				var stocks = JSON.parse(data);
+				init_table(stocks);
+            }
+        });
+	}
+	
+	window.setInterval("fresh_data()",30000); 
+	//window.setTimeout("loop_code();",1000);	
+	
+</script>
+
+</html>
+
