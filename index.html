@@ -55,7 +55,6 @@
 
 <script type="text/javascript">
 
-
 	String.prototype.startWith=function(s){
 		var reg=new RegExp("^"+s);
 		return reg.test(this);
@@ -64,9 +63,25 @@
 	var hit_add_url = remote_host + "/digcoo/hit/add";
 	var hit_resistance_url = remote_host + "/digcoo/hit/resistance";
 	var latest_stock_days_url = remote_host + "/digcoo/stock/latestdays/sh601939";
-	var show_model_array = ["Upper", "MinV", "LBreak", "MVol", "Burst", "ReMark", "DWM", "CWM", "CLWM", "BASE", 'Time30', 'LTime30', 'TimeRise', 'Cover'];
+	var show_model_array = ["Upper", "MinV", 'Cover', "LBreak", "MVol", "Burst", "ReMark", "DWM", "CWM", "CLWM", "BASE", 'Time30', 'TimeRise'];
 	var show_model_array_sort = {"Burst":"desc", "Upper":"desc", "MinV":"desc", "Base":"desc", "LastBreak":"desc", "CrossDMA":"desc", "MVol":"desc", "NDWMA":"desc"};
 	// "Sunrise", "GreenT", "Vol", "Close", "Star", "Sunrise", "RT", "TT",  "Open", 
+	
+	var show_model_array_manual = {
+									"Upper":"较长上影线",
+									"MinV":"V型反转，早盘适宜", 
+									"Cover":"反包", 
+									"LBreak":"昨日突破左侧阻力位",
+									"MVol":"4日最低缩量",
+									"Burst":"突破左侧阻力位",
+									"ReMark":"复盘",
+									"DWM":"日/周/月K线上至少1个点", 
+									"CWM":"大幅突破周K/月K线，周五", 
+									"CLWM":"上周大幅突破周K/月K线", 
+									"BASE":"满足基本的日/月/周K线", 
+									"Time30":"最后30分钟均线,回避暴力拉升\rMA5上",
+									"TimeRise":"日分时线节节攀升"
+									};
 	
 	var flag_buy = true;
 	var chart_model = 'time';
@@ -79,7 +94,8 @@
 	init_tab_index();
 	fresh_data();
 	
-	window.setInterval("fresh_data()",180 * 1000); 
+	window.setInterval("fresh_data()",180 * 1000);
+	window.setInterval("fresh_img()",30 * 1000);
 
 	function fresh_data(){
 		$.ajax({
@@ -90,6 +106,11 @@
 				init_tab_data(stocks);
             }
         });
+	}
+	
+	function fresh_img(){
+		var symbol = $("#show_stock_id").val();
+		update_img_show(symbol);
 	}
 		
 	function init_tab_data(stocks){
@@ -180,6 +201,7 @@
 		for (var i = 0; i < show_model_array.length; i++){
 			var li = document.createElement("li");
 			li.innerHTML=show_model_array[i];
+			li.title = show_model_array_manual[show_model_array[i]];
 			if(i == 0){
 				li.className="cur";
 			}
