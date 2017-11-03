@@ -63,7 +63,7 @@
 	var hit_add_url = remote_host + "/digcoo/hit/add";
 	var hit_resistance_url = remote_host + "/digcoo/hit/resistance";
 	var latest_stock_days_url = remote_host + "/digcoo/stock/latestdays/sh601939";
-	var show_model_array = ["Upper", "MinV", 'Cover', "LBreak", "MVol", "Burst", "ReMark", "DWM", "CWM", "CLWM", "BASE", "OpenRise", "TimeV60", "TimeMin"];
+	var show_model_array = ["Upper", "MinV", 'Cover', "LBreak", "MAScatter", "Burst", "ReMark", "DWM", "CWM", "CLWM", "BASE", "OpenRise", "TimeV60", "TimeMin"];
 	var show_model_array_sort = {"Burst":"desc", "Upper":"desc", "MinV":"desc", "Base":"desc", "LastBreak":"desc", "CrossDMA":"desc", "MVol":"desc", "NDWMA":"desc"};
 	// "Sunrise", "GreenT", "Vol", "Close", "Star", "Sunrise", "RT", "TT",  "Open", "Time30"
 	
@@ -81,7 +81,7 @@
 									"BASE":"满足基本的日/月/周K线", 
 									"Time30":"最后30分钟均线,回避暴力拉升\rMA5上",
 									"TimeRise":"日分时线节节攀升",
-									"OpenRise":"开盘拉升，观察是否有3次以上支撑"
+									"OpenRise":"开盘拉升，3次以上支撑或突破"
 									};
 	
 	var flag_buy = true;
