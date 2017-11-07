@@ -71,6 +71,12 @@
                 field:'id'
             },
             {
+                title:'营业部代码',
+                width:100,
+                align:'center',
+                field:'b_symbol',
+	    }
+            {
                 title:'营业部',
 		width:80,
                 align:'center',
@@ -81,10 +87,21 @@
                 }
             },
             {
+                title:'股票代码',
+                width:100,
+                align:'center',
+                field:'s_symbol',
+	    }
+            {
                 title:'股票名称',
 		width:100,
                 align:'center',
-                field:'s_name'
+                field:'s_name',
+                formatter: function (value, row, index) {
+                        var url = "http://finance.sina.com.cn/realstock/company/" + row.s_symbol  + "/nc.shtml";
+                        return "<a href=\"#\" onclick=\"javascript:window.open('"   + url + "')\" >"  + row.s_symbol + "</a>";
+                }
+
             },
             {
                 title:'曲线图',
@@ -159,7 +176,8 @@
 		}
     });
 	
-	$('#mytab').bootstrapTable('hideColumn', 'id');
+	$('#mytab').bootstrapTable('hideColumn', 'b_symbol');
+	$('#mytab').bootstrapTable('hideColumn', 's_symbol');
 
     //请求服务数据时所传参数
     function queryParams(params){
