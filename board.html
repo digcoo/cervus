@@ -74,7 +74,7 @@
                 title:'营业部',
 		width:80,
                 align:'center',
-                field:'b_symbol',
+                field:'b_name',
 	   	formatter: function (value, row, index) {
 			var url = "http://finance.sina.com.cn/realstock/company/" + value  + "/nc.shtml";
                     	return "<a href=\"#\" onclick=\"javascript:window.open('"   + url + "')\" >"  + value + "</a>";
@@ -107,8 +107,8 @@
                 field:'buy_money'
             },
 	    {
-                title:'状态',
-		width:40,
+                title:'卖出额',
+		width:80,
                 align:'center',
                 field:'sell_money'
             },
