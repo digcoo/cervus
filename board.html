@@ -65,8 +65,17 @@
         //buttonsAlign:'right',//按钮对齐方式
         columns:[
 	    {
-                title:'ID',
+                title:'序号',
 		width:80,
+                align:'center',
+                formatter: function (value, row, index) {
+		    return index+1
+                }
+
+            },
+            {
+                title:'ID',
+                width:80,
                 align:'center',
                 field:'id'
             },
@@ -75,7 +84,7 @@
                 width:100,
                 align:'center',
                 field:'b_symbol',
-	    }
+	    },
             {
                 title:'营业部',
 		width:80,
@@ -91,7 +100,7 @@
                 width:100,
                 align:'center',
                 field:'s_symbol',
-	    }
+	    },
             {
                 title:'股票名称',
 		width:100,
@@ -99,7 +108,7 @@
                 field:'s_name',
                 formatter: function (value, row, index) {
                         var url = "http://finance.sina.com.cn/realstock/company/" + row.s_symbol  + "/nc.shtml";
-                        return "<a href=\"#\" onclick=\"javascript:window.open('"   + url + "')\" >"  + row.s_symbol + "</a>";
+                        return "<a href=\"#\" onclick=\"javascript:window.open('"   + url + "')\" >"  + row.s_name + "</a>";
                 }
 
             },
@@ -175,7 +184,7 @@
 			});
 		}
     });
-	
+	$('#mytab').bootstrapTable('hideColumn', 'id');	
 	$('#mytab').bootstrapTable('hideColumn', 'b_symbol');
 	$('#mytab').bootstrapTable('hideColumn', 's_symbol');
 
@@ -197,6 +206,8 @@
     $('#search_btn').click(function(){
         $('#mytab').bootstrapTable('refresh', {url: remote_host + '/digcoo/business/daily/gettrades?'});
 	$('#mytab').bootstrapTable('hideColumn', 'id');
+	$('#mytab').bootstrapTable('hideColumn', 'b_symbol');
+        $('#mytab').bootstrapTable('hideColumn', 's_symbol');
     })
 	
 	window.operateEvents = {
