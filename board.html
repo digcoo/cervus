@@ -108,7 +108,8 @@
                 field:'s_name',
                 formatter: function (value, row, index) {
                         var url = "http://finance.sina.com.cn/realstock/company/" + row.s_symbol  + "/nc.shtml";
-                        return "<a href=\"#\" onclick=\"javascript:window.open('"   + url + "')\" >"  + row.s_name + "</a>";
+			return "<a target=\"_blank\" href=\""  + url + "\" >"  + row.s_name + "</a>";
+//                        return "<a href=\"#\" onclick=\"javascript:window.open('"   + url + "')\" >"  + row.s_name + "</a>";
                 }
 
             },
