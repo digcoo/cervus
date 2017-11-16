@@ -64,7 +64,7 @@
 	var hit_add_url = remote_host + "/digcoo/hit/add";
 	var hit_resistance_url = remote_host + "/digcoo/hit/resistance";
 	var latest_stock_days_url = remote_host + "/digcoo/stock/latestdays/sh601939";
-	var show_model_array = ["Upper", "Cover", "LBreak", "MAScatter", "Burst", "ReMark", "DWM", "CWM", "CLWM", "BASE", "OpenRise", "TimeV60", "Board"];
+	var show_model_array = ["Upper", "Cover", "LBreak", "MAScatter", "Burst", "ReMark", "DWM", "CWM", "CLWM", "BASE", "OpenRise", "TimeV60", "Board", "Watch"];
 	var show_model_array_sort = {"Burst":"desc", "Upper":"desc", "MinV":"desc", "Base":"desc", "LastBreak":"desc", "CrossDMA":"desc", "MVol":"desc", "NDWMA":"desc"};
 	// "Sunrise", "GreenT", "Vol", "Close", "Star", "Sunrise", "RT", "TT",  "Open", "Time30"
 	
@@ -239,23 +239,30 @@
 		
 		//span-序号
 		var tab_span_seq = document.createElement("span");
-		tab_span_seq.style.width="8%";
+		tab_span_seq.style.width="4%";
 		tab_span_seq.innerHTML="序号";
 		tab_li.append(tab_span_seq);
-		
+
 		//span-代码
 		var tab_span_symbol = document.createElement("span");
 		tab_span_symbol.style.width="6%";
 		tab_span_symbol.innerHTML="代码";
 		tab_li.append(tab_span_symbol);
+
+                //span-名称
+                var tab_span_name = document.createElement("span");
+                tab_span_name.style.width="8%";
+                tab_span_name.innerHTML="名称";
+                tab_li.append(tab_span_name);
+
 		//span-开盘价
 		var tab_span_op = document.createElement("span");
-		tab_span_op.style.width="6%";
+		tab_span_op.style.width="5%";
 		tab_span_op.innerHTML="开盘价";
 		tab_li.append(tab_span_op);
 		//span-收盘价
 		var tab_span_operator = document.createElement("span");
-		tab_span_operator.style.width="6%";
+		tab_span_operator.style.width="5%";
 		tab_span_operator.innerHTML="收盘价";
 		tab_li.append(tab_span_operator);
 		//span-下影线
@@ -285,7 +292,7 @@
 		tab_li.append(tab_span_model);
 		//span-操作
 		var tab_span_operate = document.createElement("span");
-		tab_span_operate.style.width="22%";
+		tab_span_operate.style.width="20%";
 		tab_span_operate.innerHTML="操作";
 		tab_li.append(tab_span_operate);
 		
@@ -317,9 +324,9 @@
 			row_li.className="tabtr";
 			row_li.title = model_stocks[i].model;
 			
-			//span-代码
+			//span-序号
 			var tab_span_seq = document.createElement("span");
-			tab_span_seq.style.width="8%";
+			tab_span_seq.style.width="4%";
 			tab_span_seq.innerText = i + 1;
 			row_li.append(tab_span_seq);
 			//span-代码
@@ -329,15 +336,21 @@
 			var sina_url = "http://finance.sina.com.cn/realstock/company/" + model_stocks[i].symbol  + "/nc.shtml"; 
 			tab_span_symbol.innerHTML = "<a href=\"#\" onclick=\"javascript:window.open('"   + sina_url + "')\" >"  + model_stocks[i].symbol + "</a>";
 			row_li.append(tab_span_symbol);
+                        //span-名称
+                        var tab_span_name = document.createElement("span");
+                        tab_span_name.style.width="8%";
+                        tab_span_name.style.color="red";
+                        tab_span_name.innerText = model_stocks[i].name;
+                        row_li.append(tab_span_name);
 			//span-开盘价
 			var tab_span_op = document.createElement("span");
-			tab_span_op.style.width="6%";
+			tab_span_op.style.width="5%";
 			tab_span_op.style.color="green";
 			tab_span_op.innerText = model_stocks[i].op;
 			row_li.append(tab_span_op);			
 			//span-收盘价
 			var tab_span_close = document.createElement("span");
-			tab_span_close.style.width="6%";
+			tab_span_close.style.width="5%";
 			tab_span_close.style.color="red";
 			tab_span_close.innerText = model_stocks[i].close;
 			row_li.append(tab_span_close);
@@ -378,7 +391,7 @@
 			row_li.append(tab_span_model);
 			//span-操作
 			var tab_span_operate = document.createElement("a");
-			tab_span_operate.style.width="22%";
+			tab_span_operate.style.width="20%";
 			tab_span_operate.style.color="#F7001E";
 			var operate_buy = "<em class=\"clickbtn buy\" onclick=\"javascript:stock_add('" + model_stocks[i].symbol + "', '" + model_stocks[i].model + "', 'watch');\">+观察</em>";
 			var operate_add = "<em class=\"clickbtn add\" onclick=\"javascript:stock_add('" + model_stocks[i].symbol + "', '" + model_stocks[i].model + "', 'hold');\">+买入</em>";
